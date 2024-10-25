@@ -42,3 +42,4 @@ if st.button("Simuler"):
     ax.set_ylabel("Valeur du Portefeuille (€)")
     ax.set_title("Croissance du Portefeuille dans le Temps")
     st.pyplot(fig)
+
