@@ -14,8 +14,6 @@ rendement_annuel = st.number_input("Rendement Annuel Moyen (%)", min_value=0.0, 
 
 #Calcul de la simulation d'investissement
 if st.button("Simuler"):
-    # Convertir les taux de pourcentage en décimal
-    taux_rendement = rendement_annuel / 100
-    mois = duree * 12
+  
 
-# 
+# Ajouter ici les Graph
