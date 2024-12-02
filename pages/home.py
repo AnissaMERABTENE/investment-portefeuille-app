@@ -12,8 +12,3 @@ contributions = st.number_input("Contributions Mensuelles (€)", min_value=0, v
 duree = st.slider("Durée de l'investissement (années)", 1, 50, 10)
 rendement_annuel = st.number_input("Rendement Annuel Moyen (%)", min_value=0.0, value=5.0)
 
-#Calcul de la simulation d'investissement
-if st.button("Simuler"):
-  
-
-# Ajouter ici les Graph
