@@ -4,125 +4,137 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
 
+
+# Fonction pour récupérer les données historiques d'un actif ////////// DATA
+def recuperer_donnees(actif, periode="10y"):
+    return yf.Ticker(actif).history(period=periode)
+#//////////////////////////////////////////////////////////////////////
+
+
+
+
+# Fonctions pour les calculs financiers /////////////////////////////
+def volatilite(data):
+    rendements = data['Close'].pct_change().dropna()
+    return np.std(rendements) * np.sqrt(252)
+
+def cagr(data):
+    debut = data['Close'].iloc[0]
+    fin = data['Close'].iloc[-1]
+    n = len(data) / 252
+    return (fin / debut) ** (1 / n) - 1
+
+def rendement_total(data):
+    debut = data['Close'].iloc[0]
+    fin = data['Close'].iloc[-1]
+    return (fin - debut) / debut
+
+def ratio_sharpe(data, taux_sans_risque=0.02):
+    rendements = data['Close'].pct_change().dropna()
+    rendements_excedents = rendements - taux_sans_risque / 252
+    return np.mean(rendements_excedents) / np.std(rendements) * np.sqrt(252)
+
+# FIN ////////////////////////////////////////////////////////////////
+
+
+
+# Interface utilisateur
+st.title("Application de Simulation d'Investissement Passif")
+
 # Fonction pour récupérer une liste d'actifs via yfinance
-def get_assets(category):
-    if category == "Actions":
-        # Liste de 30 actions populaires
-        ticker_list = [
+def get_assets(categorie):
+    if categorie == "Actions":
+        return [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX", "ADBE", "PYPL",
             "INTC", "AMD", "CSCO", "ORCL", "IBM", "DIS", "V", "MA", "JNJ", "WMT",
             "PG", "HD", "BAC", "XOM", "CVX", "PFE", "KO", "PEP", "MRK", "T"
         ]
-    elif category == "Obligations":
-        # Liste de 30 obligations populaires ou représentatives
-        ticker_list = [
+    elif categorie == "Obligations":
+        return [
             "US10Y", "US30Y", "TLT", "IEF", "SHY", "BND", "AGG", "LQD", "HYG", "TIP",
             "ZROZ", "EDV", "VCSH", "MUB", "VMBS", "ITOT", "SCHZ", "BIV", "BNDX", "EMB",
             "VWOB", "SPSB", "BSV", "STIP", "FLRN", "ICVT", "IBND", "HYD", "XOVR", "SUB"
         ]
-    elif category == "ETF":
-        # Liste de 30 ETF populaires
-        ticker_list = [
+    elif categorie == "ETF":
+        return [
             "SPY", "IVV", "VOO", "QQQ", "EEM", "IWM", "VTI", "VT", "XLK", "XLF",
             "XLV", "XLE", "XLY", "XLI", "XLP", "XLB", "XLU", "IYR", "VTV", "VUG",
             "SCHD", "VIG", "ARKK", "FDN", "SOXX", "XBI", "ITB", "REM", "HACK", "DIA"
         ]
     else:
-        ticker_list = []
-    return ticker_list
+        return []
 
-# Titre de l'application
-st.title("Application de Simulation d'Investissement Passif")
 
-# Formulaire de saisie des paramètres
-montant_initial = st.number_input("Montant Initial (€)", min_value=0, value=1000000000000)
-
-# Fréquence des contributions
+# Formulaire
+montant_initial = st.number_input("Montant Initial (€)", value=100000)
 frequence = st.selectbox("Fréquence des Contributions", ["Mensuelles", "Trimestrielles", "Annuelles"])
-
-# Montant des contributions
-contributions = st.number_input("Contributions en € ", min_value=0, value=100)
-
-# Durée de l'investissement
+contributions = st.number_input("Contributions en €", value=100)
 duree = st.slider("Durée de l'investissement (années)", 1, 50, 10)
-
-# Frais de gestion annuels
-frais_annuel = st.number_input("Frais de gestion annuels (%)", min_value=0.0, value=5.0)
-
-# Catégorie d'actif
+frais_annuel = st.number_input("Frais de gestion annuels (%)", value=1.0)
 categories = ["Actions", "Obligations", "ETF"]
-categorie_actif = st.selectbox("Choisissez une catégorie d'actif", categories)
+categorie = st.selectbox("Choisissez une catégorie d'actif", categories)
+actifs = get_assets(categorie)
+actif_choisi = st.selectbox("Choisissez un actif", actifs)
 
-# Récupérer les actifs de la catégorie sélectionnée
-actifs = get_assets(categorie_actif)
+# Bouton pour générer le rapport
+if st.button("Générer mon compte rendu"):
+    # Récupération des données historiques
+    data = recuperer_donnees(actif_choisi)
 
-# Sélection de l'actif spécifique
-if actifs:
-    actif_choisi = st.selectbox(f"Choisissez un actif ({categorie_actif})", actifs)
-    st.write(f"Vous avez choisi : {categorie_actif} - {actif_choisi}")
-else:
-    st.warning("Aucun actif disponible pour cette catégorie.")
-
-# Fonction pour récupérer les données historiques d'un actif
-def get_historical_data(ticker, period="5y"):
-    data = yf.Ticker(ticker).history(period=period)
-    return data
-
-# Fonction pour calculer la volatilité
-def calculate_volatility(data):
-    returns = data['Close'].pct_change().dropna()
-    return np.std(returns) * np.sqrt(252)  # Annualisée
-
-# Fonction pour calculer le CAGR
-def calculate_cagr(data):
-    initial_value = data['Close'].iloc[0]
-    final_value = data['Close'].iloc[-1]
-    n = len(data) / 252  # Convertir les jours de marché en années
-    return (final_value / initial_value) ** (1 / n) - 1
-
-# Fonction pour calculer le rendement total
-def calculate_total_return(data):
-    initial_value = data['Close'].iloc[0]
-    final_value = data['Close'].iloc[-1]
-    return (final_value - initial_value) / initial_value
-
-# Fonction pour calculer le ratio de Sharpe
-def calculate_sharpe_ratio(data, risk_free_rate=0.02):
-    returns = data['Close'].pct_change().dropna()
-    excess_returns = returns - risk_free_rate / 252
-    sharpe_ratio = np.mean(excess_returns) / np.std(returns) * np.sqrt(252)
-    return sharpe_ratio
-
-# Bouton pour soumettre les calculs
-if st.button("Calculer les ratios financiers"):
-    if actifs:
-        st.write(f"Calcul des ratios pour : {actif_choisi}")
-        data = get_historical_data(actif_choisi)
-
-        # Vérification que des données ont bien été récupérées
-        if data.empty:
-            st.warning("Impossible de récupérer les données pour cet actif. Essayez un autre actif.")
-        else:
-            # Calcul des ratios
-            volatility = calculate_volatility(data)
-            cagr = calculate_cagr(data)
-            total_return = calculate_total_return(data)
-            sharpe_ratio = calculate_sharpe_ratio(data)
-
-            # Affichage des résultats
-            st.subheader("Résultats des ratios financiers")
-            st.write(f"**Ratio de Sharpe** : {sharpe_ratio:.2f} \n"
-                     f"➡️ Ce ratio mesure la performance ajustée au risque. Plus il est élevé, mieux c'est.")
-            st.write(f"**Volatilité** : {volatility:.2%} \n"
-                     f"➡️ La volatilité représente l'ampleur des fluctuations des rendements.")
-            st.write(f"**CAGR (Taux de croissance annuel composé)** : {cagr:.2%} \n"
-                     f"➡️ Cela montre la croissance annuelle moyenne du portefeuille.")
-            st.write(f"**Rendement total** : {total_return:.2%} \n"
-                     f"➡️ Le rendement total mesure l'évolution globale de la valeur du portefeuille.")
-    else:
-        st.warning("Veuillez sélectionner un actif pour effectuer les calculs.")
+    # Calcul des ratios financiers
+    vol = volatilite(data)
+    taux_croissance = cagr(data)
+    rend_total = rendement_total(data)
+    sharpe = ratio_sharpe(data)
 
 
+    # Préparation des données pour le tableau
+    data['Annee'] = data.index.year
+    data['Mois'] = data.index.month
+    donnees_mois = data[data['Mois'].isin([1, 6, 12])].pivot_table(index='Mois', columns='Annee', values='Close')
+    donnees_mois.loc['Moyenne'] = donnees_mois.mean()
 
-# ATTENTION A REVOIR // il faut comprendre et surtout modifier un peut mais sa fonctionne 
-# Prochaine etape, fait les courbe ( plus compliquer )
+    # Affichage du tableau
+    st.subheader("Cours Moyens (Janvier, Juin, Décembre)")
+    st.dataframe(donnees_mois.style.format("{:.2f}"))
+
+    # Régression linéaire journalière
+    data['Jours'] = (data.index - data.index[0]).days
+    X = data['Jours'].values.reshape(-1, 1)
+    y = data['Close'].values
+    a, b = np.polyfit(X.flatten(), y, 1)
+    predictions = a * X.flatten() + b
+
+
+    st.subheader("Prédiction du cours Moyens ")
+
+    # Graphique
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(data.index, data['Close'], label="Cours journaliers", color="blue")
+    ax.plot(data.index, predictions, label="Régression Linéaire", color="red", linestyle="--")
+    ax.set_title("Cours et Tendance")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Prix")
+    ax.legend()
+    st.pyplot(fig)
+
+     # Explication générale
+    st.markdown(f"""
+                ### Explication
+                Le tableau ci-dessus montre les **cours moyens pour Janvier, Juin et Décembre** de chaque année sur les 10 dernières années.
+                Une ligne supplémentaire affiche la **moyenne annuelle** pour chaque année.
+
+                Le graphique ci-dessus montre l'évolution des **cours moyens annuels** de l'actif sur les 10 dernières années 
+                (courbe bleue) ainsi qu'une prédiction linéaire des cours sur les 10 prochaines années (ligne rouge pointillée).
+
+                L'**écart-type des résidus** indique la dispersion des valeurs réelles par rapport à 
+                la ligne de tendance. Un écart-type faible suggère que le modèle est relativement précis pour représenter la 
+                tendance générale de l'actif.
+            """)
+
+    # Affichage des ratios financiers
+    st.subheader("|||||||||||||||||  LES CHIFFRE A RETENIR ||||||||||||||||||||")
+    st.write(f"**Volatilité** : {vol:.2%}")
+    st.write(f"**CAGR (Taux de croissance annuel composé)** : {taux_croissance:.2%}")
+    st.write(f"**Rendement Total** : {rend_total:.2%}")
+    st.write(f"**Ratio de Sharpe** : {sharpe:.2f}")
