@@ -14,19 +14,28 @@ cd <nom-du-repo>
 
 4) Installer les bibliothèques nécessaires
 Installez chaque bibliothèque une par une avec les commandes suivantes :
+
 pip install streamlit
+
 pip install pandas
+
 pip install numpy
+
 pip install matplotlib
+
 pip install plotly
+
 pip install yfinance
+
 pip install scikit-learn
+
 pip install fpdf
 
-5) Se déplacer dans le dossier pages
+
+6) Se déplacer dans le dossier pages
 cd pages
 
-6) Lancer l'application
+7) Lancer l'application
 
 Exécutez le fichier home.py avec Streamlit :
 streamlit run home.py
@@ -48,18 +57,26 @@ cd <nom-du-repo>
 3) Installer les bibliothèques nécessaires
 Installez chaque bibliothèque avec les commandes suivantes :
 pip install streamlit
+
 pip install pandas
+
 pip install numpy
+
 pip install matplotlib
+
 pip install plotly
+
 pip install yfinance
+
 pip install scikit-learn
+
 pip install fpdf
 
-4) Se déplacer dans le dossier pages
+
+5) Se déplacer dans le dossier pages
 Accédez au répertoire contenant le fichier principal :
 cd pages
 
-5) Lancer l'application
+6) Lancer l'application
 Exécutez le fichier home.py avec Streamlit :
 streamlit run home.py
